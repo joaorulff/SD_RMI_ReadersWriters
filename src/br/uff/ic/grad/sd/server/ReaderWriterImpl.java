@@ -37,6 +37,7 @@ public class ReaderWriterImpl /*extends UnicastRemoteObject*/ implements IReader
     }
 
     public void readFile(String arquivo, int linhainicial, int qtdlinhas) {
+    	System.out.println("readfile");
         FileReader arq;
         try {
             arq = new FileReader(arquivo);
@@ -48,6 +49,7 @@ public class ReaderWriterImpl /*extends UnicastRemoteObject*/ implements IReader
                 System.out.println(buff.readLine());
 
             }
+            buff.close();
         } catch (FileNotFoundException ex) {
             Logger.getLogger(ReaderWriterImpl.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -81,6 +83,7 @@ public class ReaderWriterImpl /*extends UnicastRemoteObject*/ implements IReader
                         Semaphores.s.acquire();
                     }
                     Semaphores.mutex.release();
+                    System.out.println("read");
                     readFile(arquivo, linhainicial, qtdlinhas);
                     Semaphores.mutex.acquire();
                     //Acabou de ler, vai informar que acabou diminuindo N
@@ -92,7 +95,7 @@ public class ReaderWriterImpl /*extends UnicastRemoteObject*/ implements IReader
                 } catch (InterruptedException ex) {
                     Logger.getLogger(ReaderWriterImpl.class.getName()).log(Level.SEVERE, null, ex);
                 }
-
+                break;
             }
 
             case 2: {
@@ -115,7 +118,7 @@ public class ReaderWriterImpl /*extends UnicastRemoteObject*/ implements IReader
                     Logger.getLogger(ReaderWriterImpl.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            break;
         }
     }
 
@@ -132,7 +135,7 @@ public class ReaderWriterImpl /*extends UnicastRemoteObject*/ implements IReader
                 } catch (InterruptedException ex) {
                     Logger.getLogger(ReaderWriterImpl.class.getName()).log(Level.SEVERE, null, ex);
                 }
-
+                break;
             }
             case 2: {
                 try{
@@ -157,6 +160,7 @@ public class ReaderWriterImpl /*extends UnicastRemoteObject*/ implements IReader
                 } catch (InterruptedException ex) {
                     Logger.getLogger(ReaderWriterImpl.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                break;
             }
         }
 
