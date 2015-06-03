@@ -10,42 +10,56 @@
  */
 import java.util.*;
 import java.rmi.*;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.*;
 
 import br.uff.ic.grad.sd.server.IReaderWriter;
 
 public class Cliente {
   // Metodo principal
-  public static void main (String[] args) {
+	
+	
+  public static void main (String[] args) throws RemoteException{
      Scanner in= new Scanner(System.in);
      int escolha;    
      boolean acabou = true;
+     String path;
 
-    // Instala um gerenciador de seguranca para controlar a carga dinamica dos stubs
-    //System.setSecurityManager(new RMISecurityManager());
-
+     Registry reg = LocateRegistry.getRegistry(1099);
     // Especifica o nome do servidor e do objeto para obter um stub para acessar o objeto servidor
-    String url = "rmi://localhost/Servidor_de_arquivo";
-   
-    try {
-      IReaderWriter i = (IReaderWriter) Naming.lookup(url);
+     String [] vetor = reg.list();
+     System.out.println("Bindes");
+     for (int i = 0; i < vetor.length; i++) {
+		System.out.println(vetor[i]);
+	}
+     IReaderWriter irw;
+	try {
+		irw = (IReaderWriter) reg.lookup("server");
+		System.out.println("passou aqui");     
+    
       while (!acabou){
          System.out.print("Digite a opção desejada :\n1-Leitor\n2-Escritor\n3-Sair ");
          escolha=in.nextInt();
          switch(escolha){
 		case 1:{
-			System.out.print("Entre com a linha inicial e a quantidade de linhas:  ");
+			System.out.print("Entre com o aqruivo desejado, a linha inicial e a quantidade de linhas:  ");
+			int arqNum = in.nextInt();
+			path = "othesource/arquivo"+arqNum+".txt";
 			int linha=in.nextInt();
 			int qtdlinhas=in.nextInt();
 			System.out.println("Resultado:\\n");
-                        i.read(url, linha, qtdlinhas);
+                        irw.read(path, linha, qtdlinhas);
 			break;
 		}
 		case 2:{
+			System.out.println("Entre com o arquivo desejado");
+			int arqNum = in.nextInt();
+			path="othersource/arquivo"+arqNum+".txt";
 			System.out.print("Entre com os dados ");
 			String dados=in.next();
 			System.out.println("Resultado:\\n ");
-                        i.write(url, dados);
+                        irw.write(path, dados);
 			break;
 		}
 		case 3:{
@@ -53,13 +67,13 @@ public class Cliente {
                         break;
 		}
    	 }
-	System.out.println("");
-        
-      }
-    }
-    catch (Exception e) {
-      System.out.println("ERRO_CLIENT! " + e);
-    }
-    System.exit(0);
   }
+      } catch (NotBoundException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+      
+      
+      
+}
 }

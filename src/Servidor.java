@@ -9,6 +9,8 @@
  * @author Livia
  */
 import java.rmi.*;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.*;
 import java.util.Scanner;
 
@@ -29,7 +31,9 @@ public class Servidor {
 
             System.out.println("Registrando o objeto servidor...");
             // Registra o objeto servidor
-            Naming.rebind("Servidor_de_arquivos", rwi);
+            Registry reg = LocateRegistry.createRegistry(1099);
+            
+            reg.rebind("server", rwi);
 
             System.out.println("Servidor pronto para receber requisicoes de clientes!");
         } catch (Exception e) {
