@@ -1,3 +1,4 @@
+package br.uff.ic.grad.sd.server;
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -14,7 +15,6 @@ import java.rmi.registry.Registry;
 import java.rmi.server.*;
 import java.util.Scanner;
 
-import br.uff.ic.grad.sd.server.ReaderWriterImpl;
 import sun.applet.*;
 
 public class Servidor {
