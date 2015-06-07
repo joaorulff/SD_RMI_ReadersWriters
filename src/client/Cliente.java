@@ -24,16 +24,18 @@ public class Cliente {
   public static void main (String[] args) throws RemoteException{
      Scanner in= new Scanner(System.in);
      int escolha;    
-     boolean acabou = true;
+     boolean acabou = false;
      String path;
 
      Registry reg = LocateRegistry.getRegistry(1099);
     // Especifica o nome do servidor e do objeto para obter um stub para acessar o objeto servidor
+/*
      String [] vetor = reg.list();
      System.out.println("Bindes");
      for (int i = 0; i < vetor.length; i++) {
 		System.out.println(vetor[i]);
 	}
+*/
      IReaderWriter irw;
 	try {
 		irw = (IReaderWriter) reg.lookup("server");
