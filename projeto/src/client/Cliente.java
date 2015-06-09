@@ -16,10 +16,11 @@ import java.rmi.registry.Registry;
 import java.rmi.server.*;
 
 import br.uff.ic.grad.sd.server.IReaderWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class Cliente {
+public class Cliente implements Runnable {
   // Metodo principal
-	
 	
   public static void main (String[] args) throws RemoteException{
      Scanner in= new Scanner(System.in);
@@ -58,7 +59,7 @@ public class Cliente {
 		case 2:{
 			System.out.println("Entre com o arquivo desejado");
 			int arqNum = in.nextInt();
-			path="C:\\Users\\Livia\\Documents\\NetBeansProjects\\SD_RMI_ReadersWriters\\othersource\\arquivo1.txt";
+			path="C:\\Users\\Livia\\Documents\\NetBeansProjects\\SD_RMI_ReadersWriters\\othersource\\arquivo"+arqNum+".txt";
                         System.out.println(path);
 			System.out.print("Entre com os dados ");
 			String dados=in.next();
@@ -80,4 +81,29 @@ public class Cliente {
       
       
 }
+
+    @Override
+    public void run() {
+      try {
+          Registry reg = LocateRegistry.getRegistry("127.0.0.1",1099);
+          IReaderWriter irw;
+	  irw = (IReaderWriter) reg.lookup("server");
+          System.out.println("passou aqui thread"); 
+          long id = Thread.currentThread().getId();
+          String x = ""+id;
+          if(id%2==0){
+              irw.write("1", x);
+          }
+          else{
+              irw.read("1", 1, 2);
+          }
+          
+          
+      } catch (RemoteException ex) {
+          Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+      } catch (NotBoundException ex) {
+          Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+      }
+        
+    }
 }
