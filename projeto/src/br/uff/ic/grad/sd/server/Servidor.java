@@ -28,22 +28,34 @@ import sun.applet.*;
 
 public class Servidor extends UnicastRemoteObject implements IReaderWriter{
 	
-	public static ReaderWriterImpl rwi;
+	
 	
 	int prioridade;
-        int numeroLeitores;
-        int numeroEscritores;
-        int numeroEscritoresEsperando;
+        int [] numeroLeitores;
+        int [] numeroEscritores;
+        int [] numeroEscritoresEsperando;
+        Semaphores [] sets;
 	
 	public Servidor() throws RemoteException, MalformedURLException{
 		super();
-                numeroEscritores = 0;
-                numeroLeitores = 0;
-                numeroEscritoresEsperando=0;
-                Semaphores.start();
+                numeroEscritores = new int [3];
+                numeroLeitores = new int [3];
+                numeroEscritoresEsperando = new int [3];
+                for (int i = 0; i < 2; i++) {
+                numeroEscritores[i]=0;
+                numeroLeitores[i]=0;
+                numeroEscritoresEsperando[i]=0;
+            }
+                sets = new Semaphores [3];
+                sets[0] = new Semaphores();
+                sets[1] = new Semaphores();
+                sets[2] = new Semaphores();
+                for (int j = 0; j < sets.length; j++) {
+                sets[j].start();
+                
+            }
 		System.out.println("Criando um objeto servidor...");
-        // Cria um objeto servidor
-        
+                // Cria um objeto servidor        
                 System.out.println("Escolha prioridade: \n 1-Prioridade para Leitor \n 2- Priodade para escritor \n 3- Sem prioridade");
                 Scanner in = new Scanner(System.in);
                 prioridade = in.nextInt();
@@ -72,7 +84,7 @@ public class Servidor extends UnicastRemoteObject implements IReaderWriter{
 
     }
 
-    public void writeFile(String arquivo, String dados) {
+    public void writeFile(String arquivo, String dados) {        
         try {
             FileWriter fstream = new FileWriter(arquivo, true); //true tells to append data.
             BufferedWriter out = new BufferedWriter(fstream);
@@ -85,27 +97,30 @@ public class Servidor extends UnicastRemoteObject implements IReaderWriter{
     }
 
     @Override
-    public void read(String arquivo, int linhainicial, int qtdlinhas) {
+    public void read(int arqNum, String arquivo, int linhainicial, int qtdlinhas) {
+        System.out.println("entrou no read");
+        int posicao = arqNum-1;
+        Semaphores semaforosUsando = sets[posicao];
 
         switch (prioridade) {
             case 1: {
                 try {
                     // prioridade para leitor
-                    Semaphores.mutex.acquire();
-                    numeroLeitores++;         //Tem mais um lendo agora...
-                    if (numeroLeitores == 1) {  //Se for o 1Âº, precisa bloquear para escrita
-                        Semaphores.s.acquire();
+                    semaforosUsando.mutex.acquire();
+                    numeroLeitores[posicao]++;         //Tem mais um lendo agora...
+                    if (numeroLeitores[posicao] == 1) {  //Se for o 1Âº, precisa bloquear para escrita
+                        semaforosUsando.s.acquire();
                     }
-                    Semaphores.mutex.release();
+                    semaforosUsando.mutex.release();
                     System.out.println("read");
                     readFile(arquivo, linhainicial, qtdlinhas);
-                    Semaphores.mutex.acquire();
+                    semaforosUsando.mutex.acquire();
                     //Acabou de ler, vai informar que acabou diminuindo N
-                    numeroLeitores--;
-                    if (numeroLeitores == 0) { //Se nao tem mais ninguem lendo, abre para escrita
-                        Semaphores.s.release();
+                    numeroLeitores[posicao]--;
+                    if (numeroLeitores[posicao] == 0) { //Se nao tem mais ninguem lendo, abre para escrita
+                        semaforosUsando.s.release();
                     }
-                    Semaphores.mutex.release();
+                    semaforosUsando.mutex.release();
                 } catch (InterruptedException ex) {
                     Logger.getLogger(ReaderWriterImpl.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -115,19 +130,19 @@ public class Servidor extends UnicastRemoteObject implements IReaderWriter{
             case 2: {
                 try {
                     // prioridade para escritor
-                    Semaphores.mutex.acquire();
-                    while (numeroLeitores > 0 || numeroEscritoresEsperando > 0) {
-                        Semaphores.l.acquire();
+                    semaforosUsando.mutex.acquire();
+                    while (numeroLeitores[posicao] > 0 || numeroEscritoresEsperando[posicao] > 0) {
+                        semaforosUsando.l.acquire();
                     }
-                    numeroLeitores++;
-                    Semaphores.mutex.release();
+                    numeroLeitores[posicao]++;
+                    semaforosUsando.mutex.release();
                     readFile(arquivo, linhainicial, qtdlinhas);
-                    Semaphores.mutex.acquire();
-                    numeroLeitores--;
-                    if (numeroLeitores == 0 && numeroEscritoresEsperando > 0) {
-                        Semaphores.s.release();
+                    semaforosUsando.mutex.acquire();
+                    numeroLeitores[posicao]--;
+                    if (numeroLeitores[posicao] == 0 && numeroEscritoresEsperando[posicao] > 0) {
+                        semaforosUsando.s.release();
                     }
-                    Semaphores.mutex.release();
+                    semaforosUsando.mutex.release();
                 } catch (InterruptedException ex) {
                     Logger.getLogger(ReaderWriterImpl.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -136,22 +151,22 @@ public class Servidor extends UnicastRemoteObject implements IReaderWriter{
         }
         case3: {
             try {
-                Semaphores.mutex.acquire();
-                Semaphores.l.acquire();
-            if (numeroLeitores == 0) {
-                Semaphores.s.acquire();
+                semaforosUsando.mutex.acquire();
+                semaforosUsando.l.acquire();
+            if (numeroLeitores[posicao] == 0) {
+                semaforosUsando.s.acquire();
             }
-            numeroLeitores++;
-            Semaphores.mutex.release();
-            Semaphores.l.release();
+            numeroLeitores[posicao]++;
+            semaforosUsando.mutex.release();
+            semaforosUsando.l.release();
             readFile(arquivo, linhainicial, qtdlinhas);
             System.out.println("leu");
-            Semaphores.l.acquire();
-            numeroLeitores--;
-            if (numeroLeitores == 0) {
-                Semaphores.s.release();
+            semaforosUsando.l.acquire();
+            numeroLeitores[posicao]--;
+            if (numeroLeitores[posicao] == 0) {
+                semaforosUsando.s.release();
             }
-            Semaphores.l.release();
+            semaforosUsando.l.release();
             } catch (InterruptedException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -159,16 +174,19 @@ public class Servidor extends UnicastRemoteObject implements IReaderWriter{
     }
 
     @Override
-    public void write(String arquivo, String dados) {
-        System.out.println("entrou");
+    public void write(int arqNum, String arquivo, String dados) {
+        System.out.println("entrou no write");
+        int posicao = arqNum-1;
+        Semaphores semaforosUsando = sets[posicao];
+        
         switch (prioridade) {
             case 1: {
                 try {
                     //Pega o semaforo pra escrever no arquivo
-                    Semaphores.s.acquire();
+                    semaforosUsando.s.acquire();
                     writeFile(arquivo, dados);
                     //Libera ele 
-                    Semaphores.s.release();
+                    semaforosUsando.s.release();
                 } catch (InterruptedException ex) {
                     Logger.getLogger(ReaderWriterImpl.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -176,28 +194,41 @@ public class Servidor extends UnicastRemoteObject implements IReaderWriter{
             }
             case 2: {
                 try{
-                Semaphores.mutex.acquire();
-                numeroEscritoresEsperando++;
-                while (numeroLeitores > 0 || numeroEscritores > 0) {
-                    Semaphores.s.acquire();
+                semaforosUsando.mutex.acquire();
+                numeroEscritoresEsperando[posicao]++;
+                while (numeroLeitores[posicao] > 0 || numeroEscritores[posicao] > 0) {
+                    semaforosUsando.s.acquire();
                 }
-                numeroEscritoresEsperando--;
-                numeroEscritores++;
-                Semaphores.mutex.release();
+                numeroEscritoresEsperando[posicao]--;
+                numeroEscritores[posicao]++;
+                semaforosUsando.mutex.release();
                 /* Escrita */
                 writeFile(arquivo, dados);
-                Semaphores.mutex.acquire();
-                numeroEscritores--;
-                if (numeroEscritoresEsperando > 0) {
-                    Semaphores.s.release();
+                semaforosUsando.mutex.acquire();
+                numeroEscritores[posicao]--;
+                if (numeroEscritoresEsperando[posicao] > 0) {
+                    semaforosUsando.s.release();
                 } else {
-                    Semaphores.l.release();
+                    semaforosUsando.l.release();
                 }
-                Semaphores.mutex.release();
+                semaforosUsando.mutex.release();
                 } catch (InterruptedException ex) {
                     Logger.getLogger(ReaderWriterImpl.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 break;
+            }
+            case 3:{
+                 
+            try {
+            semaforosUsando.mutex.acquire();            
+            semaforosUsando.s.acquire();
+            semaforosUsando.mutex.release();
+                writeFile(arquivo, dados);
+            System.out.println("escreveu");
+            semaforosUsando.s.release();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(ReaderWriterImpl.class.getName()).log(Level.SEVERE, null, ex);
+            }
             }
         }
 

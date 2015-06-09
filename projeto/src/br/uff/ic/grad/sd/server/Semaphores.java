@@ -13,12 +13,13 @@ import java.util.concurrent.Semaphore;
  * @author Livia
  */
 public class Semaphores {
-    static Semaphore mutex; //
-    static Semaphore s; //
-    static Semaphore l;
+    Semaphore mutex; //
+    Semaphore s; //
+    Semaphore l;
     
-    public static void start(){
+    public void start(){
         mutex = new Semaphore(1);
         s =  new Semaphore(1);
+        l = new Semaphore(1);
     }
 }

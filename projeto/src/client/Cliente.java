@@ -29,14 +29,6 @@ public class Cliente implements Runnable {
      String path;
 
      Registry reg = LocateRegistry.getRegistry("127.0.0.1",1099);
-    // Especifica o nome do servidor e do objeto para obter um stub para acessar o objeto servidor
-/*
-     String [] vetor = reg.list();
-     System.out.println("Bindes");
-     for (int i = 0; i < vetor.length; i++) {
-		System.out.println(vetor[i]);
-	}
-*/
      IReaderWriter irw;
 	try {
 		irw = (IReaderWriter) reg.lookup("server");
@@ -53,7 +45,7 @@ public class Cliente implements Runnable {
 			int linha=in.nextInt();
 			int qtdlinhas=in.nextInt();
 			System.out.println("Resultado:\\n");
-                        irw.read(path, linha, qtdlinhas);
+                        irw.read(arqNum, path, linha, qtdlinhas);
 			break;
 		}
 		case 2:{
@@ -64,7 +56,7 @@ public class Cliente implements Runnable {
 			System.out.print("Entre com os dados ");
 			String dados=in.next();
 			System.out.println("Resultado:\\n ");
-                        irw.write(path, dados);
+                        irw.write(arqNum, path, dados);
 			break;
 		}
 		case 3:{
@@ -92,10 +84,10 @@ public class Cliente implements Runnable {
           long id = Thread.currentThread().getId();
           String x = ""+id;
           if(id%2==0){
-              irw.write("1", x);
+              irw.write(1,"1", x);
           }
           else{
-              irw.read("1", 1, 2);
+              irw.read(1,"1", 1, 2);
           }
           
           

@@ -15,9 +15,9 @@ import java.rmi.*;
 public interface IReaderWriter extends Remote {
 
   // Leitura
-  public void read(String arquivo, int linhainicial, int qtdlinhas) throws RemoteException;
+  public void read(int aqrNum, String arquivo, int linhainicial, int qtdlinhas) throws RemoteException;
   
-  public void write(String arquivo, String dados) throws RemoteException;
+  public void write(int arqNum, String arquivo, String dados) throws RemoteException;
  
 }
 
